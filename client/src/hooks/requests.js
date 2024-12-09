@@ -13,10 +13,18 @@ async function httpGetLaunches() {
     return a.flightNumber - b.flightNumber;
   });
 }
-
+// TODO: Once API is ready.
+// Submit given launch data to launch system.
 async function httpSubmitLaunch(launch) {
-  // TODO: Once API is ready.
-  // Submit given launch data to launch system.
+  try {
+    return await fetch(`${API_URL}/launches`, {
+      method: "post",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(launch),
+    });
+  } catch (error) {
+    return { ok: false };
+  }
 }
 
 async function httpAbortLaunch(id) {
