@@ -13,6 +13,8 @@ app.use(
     options: "http://localhost:3000",
   })
 );
+
+// used for logging
 app.use(morgan("combined"));
 
 app.use(express.json());
