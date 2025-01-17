@@ -11,4 +11,6 @@ const launchesSchema = new mongoose.Schema({
   success: { type: Boolean, required: true, default: true },
 });
 
-module.exports = mongoose.model("Launch", launchesSchema);
+// connects the schema with 'launches' collection in the database
+const launches = mongoose.model("Launch", launchesSchema);
+module.exports = launches;

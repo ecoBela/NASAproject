@@ -1,3 +1,5 @@
+const launchesDatabase = require("./launches.mongo");
+const planets = require("./planets.mongo");
 const launches = new Map();
 
 const launch = {
@@ -11,26 +13,29 @@ const launch = {
   success: true,
 };
 
-let latestFlightNumber = 100;
+const DEFAULT_FLIGHT_NUMBER = 100;
 
-launches.set(launches.flightNumber, launch);
+saveLaunch(launch);
 
-function addNewLaunch(launch) {
-  latestFlightNumber++;
+async function getLastestFlightNumber() {
+  const latestLaunch = await launchesDatabase.findOne().sort("-flightNumber");
+  if (!latestLaunch) {
+    return DEFAULT_FLIGHT_NUMBER + 1;
+  }
 
-  return launches.set(
-    latestFlightNumber,
-    Object.assign(launch, {
-      mission: launch.mission,
-      rocket: launch.rocket,
-      launchDate: new Date(launch.launchDate),
-      target: launch.target,
-      customers: ["ZTM", "NASA"],
-      upcoming: true,
-      success: true,
-      flightNumber: latestFlightNumber,
-    })
-  );
+  return latestLaunch.flightNumber;
+}
+
+async function scheduleNewLaunch(launch) {
+  const newFlightNumber = (await getLastestFlightNumber()) + 1;
+  const newLaunch = Object.assign(launch, {
+    success: true,
+    upcoming: true,
+    customers: ["ZTM", "NASA"],
+    flightNumber: newFlightNumber,
+  });
+
+  await saveLaunch(newLaunch);
 }
 
 function existsLaunchWithId(launchId) {
@@ -44,12 +49,27 @@ function abortWithLaunchId(launchId) {
   return aborted;
 }
 
-function getAllLaunches() {
-  return Array.from(launches.values());
+async function getAllLaunches() {
+  return await launchesDatabase.find({}, { _id: 0, __v: 0 });
+}
+
+async function saveLaunch(launch) {
+  const planet = await planets.findOne({ keplerName: launch.target });
+
+  if (!planet) {
+    throw new Error("No matching planet was found");
+  }
+  await launchesDatabase.updateOne(
+    { flightNumber: launch.flightNumber },
+    launch,
+    {
+      upsert: true,
+    }
+  );
 }
 
 module.exports = {
-  addNewLaunch,
+  scheduleNewLaunch,
   existsLaunchWithId,
   abortWithLaunchId,
   getAllLaunches,
