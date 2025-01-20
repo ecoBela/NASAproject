@@ -3,3 +3,6 @@ node_modules/
 
 # Public folders
 server/public
+
+# Environment variables
+server/config.js
