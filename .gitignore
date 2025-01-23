@@ -5,4 +5,4 @@ node_modules/
 server/public
 
 # Environment variables
-server/config.js
+.env
